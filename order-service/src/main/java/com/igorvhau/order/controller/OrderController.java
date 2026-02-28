@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.igorvhau.order.domain.Order;
 import com.igorvhau.order.service.OrderService;
 
-import jakarta.transaction.Transactional;
-
 @RestController
 @RequestMapping("/order")
 public class OrderController {
@@ -20,7 +18,6 @@ public class OrderController {
 		this.orderService = orderService;
 	}
 	
-	@Transactional
 	@PostMapping
 	public Order createOrder(@RequestBody Order order) {
 		return orderService.create(order);

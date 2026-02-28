@@ -1,13 +1,19 @@
 package com.igorvhau.order.domain;
 
 import jakarta.persistence.*;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import jakarta.validation.constraints.PastOrPresent;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "orders")
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Order {
 	
 	@Id
@@ -18,13 +24,18 @@ public class Order {
 	
 	private BigDecimal amount;
 	
-	private String status;
+	@Enumerated(EnumType.STRING)
+	private OrderStatus status;
 	
+	@PastOrPresent
 	private LocalDateTime createdAt;
 	
-	public Order() {
+	public void markAsCreated() {
+		this.status = OrderStatus.CREATED;
+	}
+	
+	public void setCreatedAt() {
 		this.createdAt = LocalDateTime.now();
-		this.status = "CREATED";
 	}
 
 }
