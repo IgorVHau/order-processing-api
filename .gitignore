@@ -1,0 +1,16 @@
+# IDEs
+/.metadata/
+/.vscode/
+/.idea/
+
+# OS
+.DS_Store
+
+# Logs
+*.log 
+
+# Build
+target/
+
+# Maven wrapper jar (opcional manter)
+!.mvn/wrapper/maven-wrapper.jar
