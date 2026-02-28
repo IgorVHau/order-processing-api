@@ -34,6 +34,34 @@ public class Order {
 		this.status = OrderStatus.CREATED;
 	}
 	
+	public Long getId() {
+		return id;
+	}
+	
+	public String getCustomerName() {
+		return customerName;
+	}
+	
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
+	}
+	
+	public BigDecimal getAmount() {
+		return amount;
+	}
+	
+	public void setAmount(BigDecimal amount) {
+		this.amount = amount;
+	}
+	
+	public OrderStatus getStatus() {
+		return status;
+	}
+	
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+	
 	public void setCreatedAt() {
 		this.createdAt = LocalDateTime.now();
 	}

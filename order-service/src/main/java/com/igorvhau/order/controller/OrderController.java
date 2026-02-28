@@ -8,10 +8,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.igorvhau.order.domain.Order;
+import com.igorvhau.order.dto.OrderRequestDTO;
+import com.igorvhau.order.dto.OrderResponseDTO;
+import com.igorvhau.order.mapper.OrderMapper;
 import com.igorvhau.order.service.OrderService;
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/orders")
 public class OrderController {
 	
 	private OrderService orderService;
@@ -20,6 +23,7 @@ public class OrderController {
 		this.orderService = orderService;
 	}
 	
+	/*
 	@PostMapping
 	public ResponseEntity<Order> createOrder(@RequestBody Order order) {
 		Order createdOrder = orderService.create(order);
@@ -27,5 +31,21 @@ public class OrderController {
 				.status(HttpStatus.CREATED)
 				.body(createdOrder);
 	}
-
+	*/
+	
+	/*
+	@PostMapping
+	public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderRequestDTO orderRequestDTO) {
+		Order order = orderMapper.toEntity(orderRequestDTO);
+		Order createdOrder = orderService.create(order);
+		OrderResponseDTO orderResponseDTO = orderMapper.toResponse(createdOrder);
+		return ResponseEntity.status(HttpStatus.CREATED).body(orderResponseDTO);
+	}
+	*/
+	
+	@PostMapping 
+	public ResponseEntity<OrderResponseDTO> createOrder(@RequestBody OrderRequestDTO request) {
+		OrderResponseDTO createdOrder = orderService.create(request);
+		return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
+	}
 }
