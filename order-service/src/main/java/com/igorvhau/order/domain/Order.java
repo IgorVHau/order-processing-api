@@ -11,9 +11,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "orders")
-@Getter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Order {
 	
 	@Id
