@@ -1,11 +1,14 @@
 package com.igorvhau.order.service;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.igorvhau.order.domain.Order;
 import com.igorvhau.order.dto.OrderRequestDTO;
 import com.igorvhau.order.dto.OrderResponseDTO;
+import com.igorvhau.order.exception.BusinessException;
 import com.igorvhau.order.mapper.OrderMapper;
 import com.igorvhau.order.repository.OrderRepository;
 
@@ -30,17 +33,18 @@ public class OrderService {
 	}
 	*/
 	
+	@Transactional
 	public OrderResponseDTO create(OrderRequestDTO request) {
 		Order order = orderMapper.toEntity(request);
 		
 		order.markAsCreated();
 		order.setCreatedAt();
 		
+		
 		Order savedOrder = orderRepository.save(order);
 		OrderResponseDTO response = orderMapper.toResponse(savedOrder);
 		
 		return response;
-	}
-	
+	}	
 
 }
