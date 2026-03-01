@@ -27,8 +27,14 @@ public class Order {
 	@PastOrPresent
 	private LocalDateTime createdAt;
 	
+	/*
 	public void markAsCreated() {
 		this.status = OrderStatus.CREATED;
+	}
+	*/
+	public void create() {
+		this.status = OrderStatus.CREATED;
+		this.createdAt = LocalDateTime.now();
 	}
 	
 	public Long getId() {

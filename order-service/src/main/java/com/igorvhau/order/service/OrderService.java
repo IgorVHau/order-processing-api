@@ -37,8 +37,11 @@ public class OrderService {
 	public OrderResponseDTO create(OrderRequestDTO request) {
 		Order order = orderMapper.toEntity(request);
 		
+		/*
 		order.markAsCreated();
 		order.setCreatedAt();
+		*/
+		order.create();
 		
 		
 		Order savedOrder = orderRepository.save(order);
