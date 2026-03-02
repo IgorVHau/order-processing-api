@@ -1,5 +1,6 @@
 package com.igorvhau.order.exception;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -10,6 +11,17 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+	private ProblemDetails buildProblem(
+			String type,
+			String title,
+			HttpStatus status,
+			String detail,
+			HttpServletRequest request
+			) {
+		
+		return new ProblemDetails(type, title, status.value(), detail, request.getRequestURI());
+	}
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ProblemDetails> handleBusinessException(
@@ -17,6 +29,7 @@ public class GlobalExceptionHandler {
     		HttpServletRequest request) {
         String message = ex.getLocalizedMessage();
         
+        /*
         ProblemDetails problem = new ProblemDetails(
         		"https://api.order.com/problems/business-exception",
         		"Business Rule Violation",
@@ -24,13 +37,19 @@ public class GlobalExceptionHandler {
         		message,
         		request.getRequestURI()
         		);
+        		*/
     	
         return ResponseEntity
         		.status(HttpStatus.UNPROCESSABLE_CONTENT)
-        		.body(problem);
+        		.body(buildProblem(
+        				"https://api.order.com/problems/business-exception",
+        				"Business Rule Violation",
+                		HttpStatus.UNPROCESSABLE_CONTENT,
+                		message,
+                		request));
     }
-    
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetails> handleValidationException(
     		MethodArgumentNotValidException ex,
     		HttpServletRequest request) {
@@ -41,6 +60,7 @@ public class GlobalExceptionHandler {
     				.findFirst()
     				.orElse("Validation error");
     		
+    		/*
     		ProblemDetails problem = new ProblemDetails(
     				"https://api.order.com/problems/validation-error",
     				"Validation Error",
@@ -48,10 +68,16 @@ public class GlobalExceptionHandler {
     				message,
     				request.getRequestURI()
     				);
+    		*/
     		
     		return ResponseEntity
     				.status(HttpStatus.BAD_REQUEST)
-    				.body(problem);
+    				.body(buildProblem(
+    					"https://api.order.com/problems/validation-error",
+    	    				"Validation Error",
+    	    				HttpStatus.BAD_REQUEST,
+    	    				message,
+    	    				request));
     }
     
     @ExceptionHandler(Exception.class)
@@ -59,6 +85,7 @@ public class GlobalExceptionHandler {
     		Exception ex,
     		HttpServletRequest request) {
     		
+    	/*
     		ProblemDetails problem = new ProblemDetails(
     				"https://api.order.com/problems/internal-server-error",
     				"Internal Server Error",
@@ -66,9 +93,16 @@ public class GlobalExceptionHandler {
     				"An unexpected error occured.",
     				request.getRequestURI()
     				);
+    				*/
     	
     		return ResponseEntity
     				.status(HttpStatus.INTERNAL_SERVER_ERROR)
-    				.body(problem);
+    				.body(buildProblem(
+    					"https://api.order.com/problems/internal-server-error",
+    	    				"Internal Server Error",
+    	    				HttpStatus.INTERNAL_SERVER_ERROR,
+    	    				"An unexpected error occured.",
+    	    				request
+    	    				));
     }
 }
