@@ -2,9 +2,6 @@ package com.igorvhau.order.domain;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,21 +14,20 @@ public class Order {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	
+	@Column(nullable=false, length=100)
 	private String customerName;
 	
+	@Column(nullable=false, precision=10, scale=2)
 	private BigDecimal amount;
 	
 	@Enumerated(EnumType.STRING)
+	@Column(nullable=false)
 	private OrderStatus status;
 	
 	@PastOrPresent
+	@Column(nullable=false, updatable=false)
 	private LocalDateTime createdAt;
 	
-	/*
-	public void markAsCreated() {
-		this.status = OrderStatus.CREATED;
-	}
-	*/
 	public void create() {
 		this.status = OrderStatus.CREATED;
 		this.createdAt = LocalDateTime.now();
@@ -63,10 +59,6 @@ public class Order {
 	
 	public LocalDateTime getCreatedAt() {
 		return createdAt;
-	}
-	
-	public void setCreatedAt() {
-		this.createdAt = LocalDateTime.now();
 	}
 
 }
