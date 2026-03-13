@@ -37,18 +37,22 @@ public class OrderService {
 		order.create();
 		
 		Order savedOrder = orderRepository.save(order);
-		OrderCreatedEvent event = new OrderCreatedEvent(
-				savedOrder.getId(),
-				savedOrder.getCustomerName(),
-				savedOrder.getAmount(),
-				savedOrder.getStatus(),
-				savedOrder.getCreatedAt()
-				);
-		eventPublisher.publish(event);
-		
+		publishOrderCreatedEvent(savedOrder);
 		OrderResponseDTO response = orderMapper.toResponse(savedOrder);
 		
 		return response;
-	}	
+	}
+	
+	private void publishOrderCreatedEvent(Order order) {
+		OrderCreatedEvent event = new OrderCreatedEvent(
+				order.getId(),
+				order.getCustomerName(),
+				order.getAmount(),
+				order.getStatus(),
+				order.getCreatedAt()
+				);
+		
+		eventPublisher.publish(event);
+	}
 
 }
