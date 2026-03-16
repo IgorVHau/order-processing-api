@@ -1,19 +1,20 @@
 package com.igorvhau.order.event;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 
 @Component
 public class OrderEventPublisher {
 	
-	private final ApplicationEventPublisher publisher;
+	private final SqsTemplate sqsTemplate;
 	
-	public OrderEventPublisher(ApplicationEventPublisher publisher) {
-		this.publisher = publisher;
+	public OrderEventPublisher(SqsTemplate sqsTemplate) {
+		this.sqsTemplate = sqsTemplate;
 	}
 	
-	public void publish(OrderCreatedEvent event) {
-		publisher.publishEvent(event);
+	public void publish(String message) {
+		sqsTemplate.send("order-events-queue", message);
 	}
 	
 }

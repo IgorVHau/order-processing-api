@@ -53,18 +53,6 @@ public class OrderService {
 		return response;
 	}
 	
-	private void publishOrderCreatedEvent(Order order) {
-		OrderCreatedEvent event = new OrderCreatedEvent(
-				order.getId(),
-				order.getCustomerName(),
-				order.getAmount(),
-				order.getStatus(),
-				order.getCreatedAt()
-				);
-		
-		eventPublisher.publish(event);
-	}
-	
 	private void persistOutboxEvent(Order savedOrder) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
@@ -82,7 +70,6 @@ public class OrderService {
 					"Order",
 					savedOrder.getId().toString(),
 					"OrderCreated",
-					//"{\"orderId\": " + savedOrder.getId() + "}"
 					payload
 					);
 			

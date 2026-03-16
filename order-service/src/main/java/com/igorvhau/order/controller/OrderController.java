@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.igorvhau.order.dto.OrderRequestDTO;
 import com.igorvhau.order.dto.OrderResponseDTO;
+import com.igorvhau.order.event.OrderEventPublisher;
 import com.igorvhau.order.service.OrderService;
 
 import jakarta.validation.Valid;
@@ -19,13 +20,21 @@ public class OrderController {
 	
 	private OrderService orderService;
 	
-	public OrderController(OrderService orderService) {
+	private OrderEventPublisher orderEventPublisher;
+	
+	public OrderController(OrderService orderService, OrderEventPublisher orderEventPublisher) {
 		this.orderService = orderService;
+		this.orderEventPublisher = orderEventPublisher;
 	}
 	
 	@PostMapping 
 	public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO request) {
 		OrderResponseDTO createdOrder = orderService.create(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(createdOrder);
+	}
+	
+	@PostMapping("/test")
+	public void sendTestEvent() {
+		orderEventPublisher.publish("Order test event");
 	}
 }
