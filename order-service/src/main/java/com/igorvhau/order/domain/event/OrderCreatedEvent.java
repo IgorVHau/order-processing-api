@@ -1,4 +1,4 @@
-package com.igorvhau.order.event;
+package com.igorvhau.order.domain.event;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
