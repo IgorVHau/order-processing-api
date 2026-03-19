@@ -22,19 +22,15 @@ public class OrderService {
 	
 	private final OrderMapper orderMapper;
 	
-	private final OrderEventPublisher eventPublisher;
-	
 	private final OutboxEventRepository outboxRepository;
 	
 	public OrderService(
 			OrderRepository orderRepository, 
 			OrderMapper orderMapper,
-			OrderEventPublisher eventPublisher,
 			OutboxEventRepository outboxRepository
 			) {
 		this.orderRepository = orderRepository;
 		this.orderMapper = orderMapper;
-		this.eventPublisher = eventPublisher;
 		this.outboxRepository = outboxRepository;
 	}
 	
@@ -46,7 +42,6 @@ public class OrderService {
 		
 		Order savedOrder = orderRepository.save(order);
 		persistOutboxEvent(savedOrder);
-		//publishOrderCreatedEvent(savedOrder);
 		OrderResponseDTO response = orderMapper.toResponse(savedOrder);
 		
 		return response;
@@ -56,22 +51,26 @@ public class OrderService {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			
-			String payload = mapper.writeValueAsString(
-					OrderCreatedEvent.of(
-							savedOrder.getId(),
-							savedOrder.getCustomerName(),
-							savedOrder.getAmount(),
-							savedOrder.getStatus(),
-							savedOrder.getCreatedAt())
-					);
-					
 			OutboxEvent event = new OutboxEvent(
 					"Order",
 					savedOrder.getId().toString(),
 					"OrderCreated",
-					payload
+					null
 					);
 			
+			OrderCreatedEvent domainEvent = new OrderCreatedEvent(
+					event.getEventId(),
+					savedOrder.getId(),
+					savedOrder.getCustomerName(),
+					savedOrder.getAmount(),
+					savedOrder.getStatus(),
+					savedOrder.getCreatedAt()
+					);
+
+			String payload = mapper.writeValueAsString(domainEvent);
+			
+			event.setPayload(payload);
+					
 			outboxRepository.save(event);
 			
 		} catch (Exception e) {

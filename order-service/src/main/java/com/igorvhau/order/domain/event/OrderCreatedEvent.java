@@ -15,6 +15,7 @@ public record OrderCreatedEvent(
 		OrderStatus status,
 		LocalDateTime createdAt) {
 	
+
 	public static OrderCreatedEvent of(
 			Long orderId,
 			String customerName,

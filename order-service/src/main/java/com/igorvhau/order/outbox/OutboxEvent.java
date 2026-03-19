@@ -1,12 +1,16 @@
 package com.igorvhau.order.outbox;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "outbox_events")
 public class OutboxEvent {
+	
+	@Column(nullable = false, unique = true)
+	private String eventId;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,11 +39,16 @@ public class OutboxEvent {
 	}
 	
 	public OutboxEvent(String aggregateType, String aggregateId, String eventType, String payload) {
+		this.eventId = UUID.randomUUID().toString();
 		this.aggregateType = aggregateType;
 		this.aggregateId = aggregateId;
 		this.eventType = eventType;
 		this.payload = payload;
 		this.createdAt = LocalDateTime.now();
+	}
+	
+	public String getEventId() {
+		return eventId;
 	}
 	
 	public Long getId() {
@@ -56,6 +65,10 @@ public class OutboxEvent {
 	
 	public String getPayload() {
 		return payload;
+	}
+	
+	public void setPayload(String payload) {
+		this.payload = payload;
 	}
 	
 	public LocalDateTime getCreatedAt() {
