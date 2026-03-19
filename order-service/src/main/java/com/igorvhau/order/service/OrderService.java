@@ -57,7 +57,7 @@ public class OrderService {
 			ObjectMapper mapper = new ObjectMapper();
 			
 			String payload = mapper.writeValueAsString(
-					new OrderCreatedEvent(
+					OrderCreatedEvent.of(
 							savedOrder.getId(),
 							savedOrder.getCustomerName(),
 							savedOrder.getAmount(),

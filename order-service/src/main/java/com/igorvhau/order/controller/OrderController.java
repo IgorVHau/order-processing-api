@@ -42,7 +42,7 @@ public class OrderController {
 	@PostMapping("/test")
 	public void sendTestEvent() {
 		
-		OrderCreatedEvent event = new OrderCreatedEvent(
+		OrderCreatedEvent event = OrderCreatedEvent.of(
 				UUID.randomUUID().getMostSignificantBits(),
 				"Random customer",
 				BigDecimal.valueOf(100),
