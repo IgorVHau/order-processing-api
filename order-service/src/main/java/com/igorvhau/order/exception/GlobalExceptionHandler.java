@@ -101,8 +101,8 @@ public class GlobalExceptionHandler {
     					"https://api.order.com/problems/internal-server-error",
     	    				"Internal Server Error",
     	    				HttpStatus.INTERNAL_SERVER_ERROR,
-    	    				//"An unexpected error occured.",
-    	    				ex.getMessage(),
+    	    				"An unexpected error occurred.",
+    	    				//ex.getMessage(),
     	    				request
     	    				));
     }
