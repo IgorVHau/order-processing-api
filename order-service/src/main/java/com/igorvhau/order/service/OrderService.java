@@ -8,7 +8,6 @@ import com.igorvhau.order.domain.event.OrderCreatedEvent;
 import com.igorvhau.order.dto.OrderRequestDTO;
 import com.igorvhau.order.dto.OrderResponseDTO;
 import com.igorvhau.order.mapper.OrderMapper;
-import com.igorvhau.order.messaging.publisher.OrderEventPublisher;
 import com.igorvhau.order.outbox.OutboxEvent;
 import com.igorvhau.order.outbox.OutboxEventRepository;
 import com.igorvhau.order.repository.OrderRepository;
