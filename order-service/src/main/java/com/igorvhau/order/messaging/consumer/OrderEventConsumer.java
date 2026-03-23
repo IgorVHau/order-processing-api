@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.igorvhau.order.domain.event.OrderCreatedEvent;
 import com.igorvhau.order.messaging.idempotency.ProcessedEvent;
 import com.igorvhau.order.messaging.idempotency.ProcessedEventRepository;
+import com.igorvhau.payment.service.PaymentService;
 
 import io.awspring.cloud.sqs.annotation.SqsListener;
 
@@ -15,8 +16,11 @@ public class OrderEventConsumer {
 	
 	private final ProcessedEventRepository repository;
 	
-	public OrderEventConsumer(ProcessedEventRepository repository) {
+	private final PaymentService paymentService;
+	
+	public OrderEventConsumer(ProcessedEventRepository repository, PaymentService paymentService) {
 		this.repository = repository;
+		this.paymentService = paymentService;
 	}
 	
 	@SqsListener("${aws.sqs.queue.order-events}")
@@ -24,9 +28,9 @@ public class OrderEventConsumer {
 	public void handle(OrderCreatedEvent event) {
 		
 		try {
-			repository.save(new ProcessedEvent(event.eventId()));
+			paymentService.process(event);
 			
-			System.out.println(" Processing event: " + event.eventId());
+			repository.save(new ProcessedEvent(event.eventId()));
 		} catch (DataIntegrityViolationException e) {
 			System.err.println(" Duplicated event ignored: " + event.eventId());
 		}
