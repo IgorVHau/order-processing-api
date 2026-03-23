@@ -1,7 +1,9 @@
-package com.igorvhau.order.event;
+package com.igorvhau.order.messaging.listener;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import com.igorvhau.order.domain.event.OrderCreatedEvent;
 
 @Component
 public class OrderEventListener {

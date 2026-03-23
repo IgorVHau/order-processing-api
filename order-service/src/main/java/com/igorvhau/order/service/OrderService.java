@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.igorvhau.order.domain.Order;
+import com.igorvhau.order.domain.event.OrderCreatedEvent;
 import com.igorvhau.order.dto.OrderRequestDTO;
 import com.igorvhau.order.dto.OrderResponseDTO;
 import com.igorvhau.order.mapper.OrderMapper;
@@ -13,9 +14,6 @@ import com.igorvhau.order.repository.OrderRepository;
 
 import tools.jackson.databind.ObjectMapper;
 
-import com.igorvhau.order.event.OrderCreatedEvent;
-import com.igorvhau.order.event.OrderEventPublisher;
-
 @Service
 public class OrderService {
 	
@@ -23,19 +21,15 @@ public class OrderService {
 	
 	private final OrderMapper orderMapper;
 	
-	private final OrderEventPublisher eventPublisher;
-	
 	private final OutboxEventRepository outboxRepository;
 	
 	public OrderService(
 			OrderRepository orderRepository, 
 			OrderMapper orderMapper,
-			OrderEventPublisher eventPublisher,
 			OutboxEventRepository outboxRepository
 			) {
 		this.orderRepository = orderRepository;
 		this.orderMapper = orderMapper;
-		this.eventPublisher = eventPublisher;
 		this.outboxRepository = outboxRepository;
 	}
 	
@@ -47,45 +41,35 @@ public class OrderService {
 		
 		Order savedOrder = orderRepository.save(order);
 		persistOutboxEvent(savedOrder);
-		//publishOrderCreatedEvent(savedOrder);
 		OrderResponseDTO response = orderMapper.toResponse(savedOrder);
 		
 		return response;
-	}
-	
-	private void publishOrderCreatedEvent(Order order) {
-		OrderCreatedEvent event = new OrderCreatedEvent(
-				order.getId(),
-				order.getCustomerName(),
-				order.getAmount(),
-				order.getStatus(),
-				order.getCreatedAt()
-				);
-		
-		eventPublisher.publish(event);
 	}
 	
 	private void persistOutboxEvent(Order savedOrder) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			
-			String payload = mapper.writeValueAsString(
-					new OrderCreatedEvent(
-							savedOrder.getId(),
-							savedOrder.getCustomerName(),
-							savedOrder.getAmount(),
-							savedOrder.getStatus(),
-							savedOrder.getCreatedAt())
-					);
-					
 			OutboxEvent event = new OutboxEvent(
 					"Order",
 					savedOrder.getId().toString(),
 					"OrderCreated",
-					//"{\"orderId\": " + savedOrder.getId() + "}"
-					payload
+					null
 					);
 			
+			OrderCreatedEvent domainEvent = new OrderCreatedEvent(
+					event.getEventId(),
+					savedOrder.getId(),
+					savedOrder.getCustomerName(),
+					savedOrder.getAmount(),
+					savedOrder.getStatus(),
+					savedOrder.getCreatedAt()
+					);
+
+			String payload = mapper.writeValueAsString(domainEvent);
+			
+			event.setPayload(payload);
+					
 			outboxRepository.save(event);
 			
 		} catch (Exception e) {
