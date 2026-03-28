@@ -2,6 +2,7 @@ package com.igorvhau.order.outbox;
 
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.*;
 
@@ -25,7 +26,7 @@ public class OutboxPublisher {
 	
 	@Scheduled(fixedDelay = 5000)
 	public void publishPendingEvents() {
-		List<OutboxEvent> events = repository.findByProcessedFalse();
+		List<OutboxEvent> events = repository.findByProcessedFalse(PageRequest.of(0, 100));
 		
 		for (OutboxEvent event : events) {
 			try {
