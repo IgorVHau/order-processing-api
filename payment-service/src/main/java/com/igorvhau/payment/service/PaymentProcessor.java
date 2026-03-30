@@ -2,6 +2,8 @@ package com.igorvhau.payment.service;
 
 import java.math.BigDecimal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -16,6 +18,7 @@ import com.igorvhau.payment.messaging.idempotency.ProcessedEventRepository;
 @Service
 public class PaymentProcessor {
 	
+	private static final Logger log = LoggerFactory.getLogger(PaymentProcessor.class);
 	private final ProcessedEventRepository repository;
 	
 	public PaymentProcessor(ProcessedEventRepository repository) {
@@ -33,22 +36,21 @@ public class PaymentProcessor {
 		try {
 			repository.saveAndFlush(new ProcessedEvent(event.eventId()));
 		} catch (DataIntegrityViolationException e) {
-			System.err.println("Event already processed (idempotent): " + event.eventId());
+			log.warn("Event already processed (idempotent): {}", event.eventId());
 			return;
 		}
 		
-		if(event.amount().compareTo(BigDecimal.valueOf(50)) > 0) {
-			throw new RuntimeException("Simulated failure. ");
+		if(event.amount().compareTo(BigDecimal.valueOf(100)) > 0) {
+			log.error("Simulate failure for order: {}", event.orderId());
+			throw new RuntimeException("Payment amount exceeds limit for simulation.");
 		}
 		
-		System.out.println("Processing event for order: " + event.orderId());
-		
-		System.out.println("Payment approved: " + event.orderId());
+		log.info("Payment approved for order: {} | Amount: {}", event.orderId(), event.amount());
 	}
 	
 	@Recover
 	public void recover(RuntimeException e, OrderCreatedEvent event) {
-		System.err.println("Process failed after retries → going to DLQ: " + event);
+		log.error("Process failed after retries for event: {}. Sending to DLQ. Error: {}", event.eventId(), e.getMessage());
 	}
 
 }
