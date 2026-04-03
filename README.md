@@ -20,6 +20,7 @@ Focused on asynchronous communication and distributed systems concepts.
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
 - [Features](#features)
+- [Reliability](#reliability)
 - [AWS Configuration](#aws-configuration)
 - [Running locally](#running-locally)
 - [Roadmap](#roadmap)
@@ -39,9 +40,14 @@ Focused on asynchronous communication and distributed systems concepts.
 
 ```mermaid
 flowchart LR
-    A[order-service] -->|publish event| B[SQS]
-    B -->|consume| C[payment-service]
-```
+    A[order-service] -->|Outbox Publisher| B[SQS]
+    B -->|SqsListener| C[payment-service]
+
+    C -->|Idempotency Check| D[(processed_events)]
+    C -->|Process Payment| E[Business Logic]
+
+    E -->|Fail after retries| F[DLQ]
+  ```
 
 ### Flow
 
@@ -58,6 +64,13 @@ flowchart LR
 - Idempotent message processing
 - Dockerized services with docker-compose
 - End-to-end event flow validated
+
+## Reliability
+
+- Transactional Outbox Pattern
+- Idempotent consumer with processed_events table
+- Retry with exponential backoff
+- Dead Letter Queue (DLQ) for failed message handling after max retries
 
 ## AWS Configuration
 
@@ -124,6 +137,22 @@ curl -X POST http://localhost:8081/orders \
 	    "amount": 100
 	}
 ```
+
+> [!WARNING] 
+> This project intentionally simulates failures for demonstration purposes. 
+> 
+> If "amount > 100", the payment-service will throw an exception.
+> The message will be retried 3 times with exponential backoff.
+> After that, it will be sent to the Dead Letter Queue (DLQ).
+
+> [!TIP]
+> Try sending different values to check the system behavior:
+>
+>
+> `amount <= 100` → processed successfully
+>
+> `amount > 100` → retries + DLQ
+
 
 ## Roadmap
 
