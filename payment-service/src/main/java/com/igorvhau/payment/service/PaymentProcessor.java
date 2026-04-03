@@ -51,6 +51,7 @@ public class PaymentProcessor {
 	@Recover
 	public void recover(RuntimeException e, OrderCreatedEvent event) {
 		log.error("Process failed after retries for event: {}. Sending to DLQ. Error: {}", event.eventId(), e.getMessage());
+		throw e;
 	}
 
 }
