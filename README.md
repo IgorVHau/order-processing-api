@@ -21,6 +21,7 @@ Focused on asynchronous communication and distributed systems concepts.
 - [Architecture](#architecture)
 - [Features](#features)
 - [Reliability](#reliability)
+- [Trade-offs](#trade-offs)
 - [AWS Configuration](#aws-configuration)
 - [Running locally](#running-locally)
 - [Roadmap](#roadmap)
@@ -40,22 +41,43 @@ Focused on asynchronous communication and distributed systems concepts.
 
 ```mermaid
 flowchart LR
-    A[order-service] -->|Outbox Publisher| B[SQS]
-    B -->|SqsListener| C[payment-service]
 
-    C -->|Idempotency Check| D[(processed_events)]
-    C -->|Process Payment| E[Business Logic]
+A[<b>order-service</b>]:::app
+B([SQS]):::aws
+C[<b>payment-service</b>]:::app
+D[(processed_events)]:::db
+E[Business Logic]:::app
+F([DLQ]):::aws
 
-    E -->|Fail after retries| F[DLQ]
-  ```
+A e1@-->|Outbox<br> Publisher| B
+B e2@-->|SqsListener| C
+C -->|Idempotency<br> Check| D
+C -->|Process<br> Payment| E
+E e3@-->|Fail after<br> retries| F
+
+click A "https://github.com/IgorVHau/order-processing-api/tree/main/order-service" _blank
+click C "https://github.com/IgorVHau/order-processing-api/tree/main/payment-service" _blank
+
+classDef app stroke: #ededed, stroke-width: 2px, color: #ededed, fill: #232f3e
+classDef aws stroke: #ff9900, stroke-width: 2px
+classDef db stroke: #3b48cc,stroke-width: 2px
+
+linkStyle 0,1,2,3 font-size: 14px
+linkStyle 4 stroke:#ff0000, stroke-width: 2px, font-size: 14px
+
+e1@{ animation: fast }
+e2@{ animation: fast }
+e3@{ animation: slow }
+
+```
 
 ### Flow
 
-1. Client sends request to order-service
+1. Client sends a request to order-service
 2. Order is created and persisted
 3. An OrderCreatedEvent is published to SQS
 4. payment-service consumes the event
-5. Payment is processed asynchronously
+5. Payment is processed asynchronously by payment-service
 
 ## Features
 
@@ -71,6 +93,12 @@ flowchart LR
 - Idempotent consumer with processed_events table
 - Retry with exponential backoff
 - Dead Letter Queue (DLQ) for failed message handling after max retries
+
+## Trade-offs
+
+- H2 database is used for simplicity in local development (not production-ready)
+- Payment processing is simulated (no real external integration)
+- DLQ messages are not automatically reprocessed yet (manual intervention required)
 
 ## AWS Configuration
 
@@ -156,7 +184,7 @@ curl -X POST http://localhost:8081/orders \
 
 ## Roadmap
 
-See [ROADMAP.md](./order-service/ROADMAP.md)
+See [ROADMAP.md](./ROADMAP.md)
 
 ## Goal
 
