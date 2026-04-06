@@ -102,9 +102,7 @@ e3@{ animation: slow }
 
 ## AWS Configuration
 
-This project requires AWS credentials to access SQS. 
-
-Make sure you have [AWS CLI](https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-quickstart.html) installed, then run: 
+This project requires AWS credentials to access SQS. Make sure you have [AWS CLI](https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-quickstart.html) installed, then run: 
 
 ```bash
 aws configure
