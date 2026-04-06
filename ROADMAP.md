@@ -24,11 +24,11 @@
 ✔ Ensure idempotent consumer behavior
 
 ## Phase 6 — Testing & Observability 
-⬜ Add integration tests for event flow
-⬜ Add structured logging 
+⬜ Add integration tests for event flow  
+⬜ Add structured logging  
 ⬜ Improve monitoring and metrics
 
 ## Phase 7 — System Expansion
-⬜ Introduce inventory-service
-⬜ Introduce notification-service
+⬜ Introduce inventory-service  
+⬜ Introduce notification-service  
 ⬜ Evaluate SNS for pub/sub scenarios

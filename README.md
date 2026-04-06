@@ -19,10 +19,10 @@ Focused on asynchronous communication and distributed systems concepts.
 
 - [Tech stack](#tech-stack)
 - [Architecture](#architecture)
-- [Features](#features)
-- [Reliability](#reliability)
-- [AWS Configuration](#aws-configuration)
+- [Reliability & Patterns](#reliability--patterns)
+- [Trade-offs](#trade-offs)
 - [Running locally](#running-locally)
+- [Testing the flow](#testing-the-flow)
 - [Roadmap](#roadmap)
 - [Goal](#goal)
 
@@ -40,84 +40,87 @@ Focused on asynchronous communication and distributed systems concepts.
 
 ```mermaid
 flowchart LR
-    A[order-service] -->|Outbox Publisher| B[SQS]
-    B -->|SqsListener| C[payment-service]
 
-    C -->|Idempotency Check| D[(processed_events)]
-    C -->|Process Payment| E[Business Logic]
+A[<b>order-service</b>]:::app
+B([SQS]):::aws
+C[<b>payment-service</b>]:::app
+D[(processed_events)]:::db
+E[Business Logic]:::app
+F([DLQ]):::aws
 
-    E -->|Fail after retries| F[DLQ]
-  ```
+A e1@-->|Outbox<br> Publisher| B
+B e2@-->|SqsListener| C
+C -->|Idempotency<br> Check| D
+C -->|Process<br> Payment| E
+E e3@-->|Fail after<br> retries| F
+
+click A "https://github.com/IgorVHau/order-processing-api/tree/main/order-service" _blank
+click C "https://github.com/IgorVHau/order-processing-api/tree/main/payment-service" _blank
+
+classDef app stroke: #ededed, stroke-width: 2px, color: #ededed, fill: #232f3e
+classDef aws stroke: #ff9900, stroke-width: 2px
+classDef db stroke: #3b48cc,stroke-width: 2px
+
+linkStyle 0,1,2,3 font-size: 14px
+linkStyle 4 stroke:#ff0000, stroke-width: 2px, font-size: 14px
+
+e1@{ animation: fast }
+e2@{ animation: fast }
+e3@{ animation: slow }
+
+```
 
 ### Flow
 
-1. Client sends request to order-service
-2. Order is created and persisted
-3. An OrderCreatedEvent is published to SQS
-4. payment-service consumes the event
-5. Payment is processed asynchronously
+1. **Order Entry:** `order-service` receives a request, persists the order and saves an event in the Outbox table.
+2. **Async Dispatch:** The event is published to AWS SQS.
+3. **Consumption:** `payment-service` listens to the queue and ensures idempotency via a `processed_events` table.
+4. **Resilience:** If payment fails, the consumer retries messages with exponential backoff. After exhaustion, they are moved to the DLQ.
 
-## Features
+## Reliability & Patterns
 
-- Asynchronous communication via AWS SQS
-- Microservices architecture (order-service and payment-service)
-- Idempotent message processing
-- Dockerized services with docker-compose
-- End-to-end event flow validated
+- **Transactional Outbox:** Ensures data consistency between database and message broker.
+- **Idempotent consumer:** Prevents duplicate processing of the same event.
+- **Exponential backoff:** Smart retry strategy to handle transient failures.
+- **Dead Letter Queue (DLQ):** Isolation of poisonous message for manual analysis.
 
-## Reliability
+## Trade-offs
 
-- Transactional Outbox Pattern
-- Idempotent consumer with processed_events table
-- Retry with exponential backoff
-- Dead Letter Queue (DLQ) for failed message handling after max retries
+- **H2 Database:** Used for zero-setup local dev. In production, PostgreSQL/DynamoDB would be preferred.
+- **Simulated payment:** The payment gateway is mocked to focus on the architectural flow rather than external APIs.
+- **Manual DLQ Recovery:** Reprocessing logic is not implemented yet and requires manual intervention.
 
-## AWS Configuration
+## Running locally
 
-This project requires AWS credentials to access SQS. 
+### 1. AWS Configuration
 
-Make sure you have [AWS CLI](https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-quickstart.html) installed, then run: 
+This project requires AWS credentials to access SQS. Make sure you have [AWS CLI](https://docs.aws.amazon.com/pt_br/cli/latest/userguide/getting-started-quickstart.html) installed, then run: 
 
 ```bash
 aws configure
 ```
 
-Provide the following information when prompted:
-
-- AWS Access Key ID: `your_access_key`
-- AWS Secret Access Key: `your_secret_key`
-- Default region name: `sa-east-1`
-- Default output format: `json`
-
 > [!NOTE]
-> Credentials must be stored under the `default` profile to be automatically detected.
+> Credentials must be stored under the `default` profile to be automatically detected. Use region `sa-east-1`.
 
-
-##  Running locally
-
-### Requirements
-
-- Docker (Docker Desktop recommended for Windows/Mac)
-- AWS credentials configured [(see AWS Configuration section)](#aws-configuration)
-
-### Start services
-
+### 2. Start services
 
 ```bash
 docker compose up --build
 ```
 
+| Service | Endpoint |
+| --- | --- |
+| order-service | http://localhost:8081 |
+| payment-service | (Internal Consumer) |
+
 > [!TIP]
-> To run in the background and keep your terminal free, use `docker compose up -d --build`.
+> Tail the logs to watch the event processing and retries in real-time: `docker logs -f payment-service`
 
-After starting, services will be available at:
 
-- order-service → http://localhost:8081
-- payment-service → (no public HTTP endpoints)
+## Testing the flow
 
 Orders can be created using curl or an API Client.
-
-### Using curl
 
 ```bash
 curl -X POST http://localhost:8081/orders \
@@ -125,38 +128,16 @@ curl -X POST http://localhost:8081/orders \
 -d '{"customerName":"John Doe","amount":100}'
 ```
 
-### Using API Client
-
-- *URL:* `http://localhost:8081/orders`
-- *HTTP Method:* `POST`
-- *Content-Type:* `application/json`
-- *Request body (example):*
-```json
-	{
-	    "customerName": "John Doe",
-	    "amount": 100
-	}
-```
-
 > [!WARNING] 
-> This project intentionally simulates failures for demonstration purposes. 
-> 
-> If "amount > 100", the payment-service will throw an exception.
-> The message will be retried 3 times with exponential backoff.
-> After that, it will be sent to the Dead Letter Queue (DLQ).
+> This project intentionally simulates failures for demonstration purposes. Sending an amount > 100 will trigger 3 retries followed by the message moving to the DLQ.
 
 > [!TIP]
-> Try sending different values to check the system behavior:
->
->
-> `amount <= 100` → processed successfully
->
-> `amount > 100` → retries + DLQ
+> Try sending different values to check the system behavior.
 
 
 ## Roadmap
 
-See [ROADMAP.md](./order-service/ROADMAP.md)
+See [ROADMAP.md](./ROADMAP.md)
 
 ## Goal
 
